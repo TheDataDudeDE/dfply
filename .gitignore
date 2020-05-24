@@ -20,3 +20,7 @@ build
 
 # egg_info
 dfply.egg_info
+
+#pycharm
+.idea
+venv

@@ -35,6 +35,12 @@ def distinct(df, *args, **kwargs):
         return df.drop_duplicates(**kwargs)
     return df.drop_duplicates(list(args), **kwargs)
 
+@pipe
+@group_delegation
+@symbolic_evaluation(eval_as_label=['*'])
+def shape(df):
+    return df.shape
+
 
 @dfpipe
 def row_slice(df, indices):
@@ -64,8 +70,25 @@ def mask(df, *args):
         mask = mask & arg.reset_index(drop=True)
     return df[mask.values]
 
-
 filter_by = mask   # alias for mask()
+
+
+# Helper function for mask or filter_by with multiple columns
+def mult(col: str, items: list):
+    arg_list = []
+    string = all(isinstance(x, str) for x in items)
+    numeric = all(isinstance(x, (int,float)) for x in items)
+    if not any([string,numeric]):
+        raise TypeError("all items must be either string or numeric")
+    for item in items:
+        if string:
+            arg_list.append(f"(X.{col} == '{item}')")
+        elif numeric:
+            arg_list.append(f"(X.{col} == {item})")
+    arg_list = '|'.join(arg_list)
+    return eval(arg_list)
+
+
 
 
 @dfpipe

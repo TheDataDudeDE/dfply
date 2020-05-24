@@ -1,5 +1,5 @@
 import pytest
-
+import unittest
 from dfply import *
 
 ##==============================================================================
@@ -9,6 +9,10 @@ from dfply import *
 #       0     1      2     3       4      5      6      7     8     9
 #   carat    cut color clarity  depth  table  price     x     y     z
 #    0.23  Ideal     E     SI2   61.5   55.0    326  3.95  3.98  2.43
+
+
+
+
 
 def test_select():
     df = diamonds[['carat','cut','price']]
@@ -21,6 +25,13 @@ def test_select():
     assert df.equals(diamonds >> select(X[['carat','cut']], X.price))
     assert df.equals(diamonds >> select(X.iloc[:,[0,1,6]]))
     assert df.equals(diamonds >> select([X.loc[:, ['carat','cut','price']]]))
+
+
+def test_select_numeric_columns():
+    df = diamonds >> select_numeric_cols()
+    truth_cols = ['carat', 'depth', 'table', 'price', 'x', 'y', 'z']
+    assert len(df.columns) == len(truth_cols)
+    assert set(df.columns) == set(truth_cols)
 
 
 def test_select_inversion():

@@ -12,6 +12,8 @@ from .data import diamonds
 from .summary_functions import *
 from .window_functions import *
 from .vector import *
+from .plotting import *
+from .missings import *
 
 for verb in dir():
     if 'ize' in verb:

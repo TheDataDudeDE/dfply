@@ -21,6 +21,17 @@ def mean(series):
     else:
         return np.nan
 
+@pipe
+@make_symbolic
+def meandf(df):
+    """
+    Returns the mean of a dataframe
+
+    Args:
+         dataframe (pandas.DataFrame): mean of column(s)
+    """
+    return pd.DataFrame(df.mean()).T
+
 
 @make_symbolic
 def first(series, order_by=None):

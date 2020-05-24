@@ -2,6 +2,7 @@ import pytest
 
 from dfply import *
 
+
 ##==============================================================================
 ## reshape test functions
 ##==============================================================================
@@ -12,27 +13,28 @@ def arrange_apply_helperfunc(df):
     df = df.head(5)
     return df
 
-# def test_arrange_small():
-#     d = diamonds >> arrange(desc(X.cut), desc(X.price))
-#     print(d.head(25))
-#     assert False
-
 
 def test_arrange():
     df = diamonds.groupby('cut').apply(arrange_apply_helperfunc).reset_index(drop=True)
     d = (diamonds >> group_by('cut') >> arrange('depth', ascending=False) >>
          head(5) >> ungroup()).reset_index(drop=True)
-    #print('df', df, df.shape)
-    #print('d', d, d.shape)
+    # print('df', df, df.shape)
+    # print('d', d, d.shape)
     assert df.equals(d)
 
     d = (diamonds >> group_by('cut') >> arrange(X.depth, ascending=False) >>
          head(5) >> ungroup()).reset_index(drop=True)
     assert df.equals(d)
 
+    d = (diamonds >> group_by('cut') >> arrange(X.depth, ascending=False, reindex=True) >>
+         head(5) >> ungroup()).reset_index(drop=True)
+    depth_index = [df.columns.get_loc('depth')]
+    col_index = [df.columns.get_loc(x) for x in df.columns if x not in 'depth']
+    assert df.iloc[:, depth_index + col_index].equals(d)
+
     print(type(d), type(df), type(diamonds))
 
-    df = diamonds.sort_values(['cut','price'], ascending=False)
+    df = diamonds.sort_values(['cut', 'price'], ascending=False)
     d = diamonds >> arrange(desc(X.cut), desc(X.price))
     print('df', df >> head(5))
     print('d', d >> head(5))
@@ -40,7 +42,7 @@ def test_arrange():
 
 
 def test_rename():
-    df = diamonds.rename(columns={'cut':'Cut','table':'Table','carat':'Carat'})
+    df = diamonds.rename(columns={'cut': 'Cut', 'table': 'Table', 'carat': 'Carat'})
     d = diamonds >> rename(Cut=X.cut, Table=X.table, Carat='carat')
     assert df.equals(d)
 
@@ -52,9 +54,9 @@ def elongated():
 
 
 def test_gather(elongated):
-    d = diamonds >> gather('variable', 'value', ['price', 'depth','x','y','z'])
+    d = diamonds >> gather('variable', 'value', ['price', 'depth', 'x', 'y', 'z'])
 
-    variables = ['price','depth','x','y','z']
+    variables = ['price', 'depth', 'x', 'y', 'z']
     id_vars = [c for c in diamonds.columns if c not in variables]
     df = pd.melt(diamonds, id_vars, variables, 'variable', 'value')
 
@@ -76,14 +78,13 @@ def test_gather(elongated):
 
 
 def test_spread(elongated):
-
     columns = elongated.columns.tolist()
     id_cols = ['_ID']
 
     df = elongated.copy()
     df['temp_index'] = df['_ID'].values
     df = df.set_index('temp_index')
-    spread_data = df[['variable','value']]
+    spread_data = df[['variable', 'value']]
 
     spread_data = spread_data.pivot(columns='variable', values='value')
     converted_spread = spread_data.copy()
@@ -104,108 +105,107 @@ def test_spread(elongated):
 
 
 def test_separate():
-
     d = pd.DataFrame({
-        'a':['1-a-3','1-b','1-c-3-4','9-d-1','10']
+        'a': ['1-a-3', '1-b', '1-c-3-4', '9-d-1', '10']
     })
 
-    test1 = d >> separate(X.a, ['a1','a2','a3'],
+    test1 = d >> separate(X.a, ['a1', 'a2', 'a3'],
                           remove=True, convert=False,
                           extra='merge', fill='right')
 
     true1 = pd.DataFrame({
-        'a1':['1','1','1','9','10'],
-        'a2':['a','b','c','d',np.nan],
-        'a3':['3',np.nan,'3-4','1',np.nan]
+        'a1': ['1', '1', '1', '9', '10'],
+        'a2': ['a', 'b', 'c', 'd', np.nan],
+        'a3': ['3', np.nan, '3-4', '1', np.nan]
     })
     print(test1)
     print(true1)
     assert true1.equals(test1)
 
-    test2 = d >> separate(X.a, ['a1','a2','a3'],
+    test2 = d >> separate(X.a, ['a1', 'a2', 'a3'],
                           remove=True, convert=False,
                           extra='merge', fill='left')
 
     true2 = pd.DataFrame({
-        'a1':['1',np.nan,'1','9',np.nan],
-        'a2':['a','1','c','d',np.nan],
-        'a3':['3','b','3-4','1','10']
+        'a1': ['1', np.nan, '1', '9', np.nan],
+        'a2': ['a', '1', 'c', 'd', np.nan],
+        'a3': ['3', 'b', '3-4', '1', '10']
     })
     assert true2.equals(test2)
 
-    test3 = d >> separate(X.a, ['a1','a2','a3'],
+    test3 = d >> separate(X.a, ['a1', 'a2', 'a3'],
                           remove=True, convert=True,
                           extra='merge', fill='right')
 
     true3 = pd.DataFrame({
-        'a1':[1,1,1,9,10],
-        'a2':['a','b','c','d',np.nan],
-        'a3':['3',np.nan,'3-4','1',np.nan]
+        'a1': [1, 1, 1, 9, 10],
+        'a2': ['a', 'b', 'c', 'd', np.nan],
+        'a3': ['3', np.nan, '3-4', '1', np.nan]
     })
     assert true3.equals(test3)
 
-    test4 = d >> separate(X.a, ['col1','col2'], sep=[1,3],
+    test4 = d >> separate(X.a, ['col1', 'col2'], sep=[1, 3],
                           remove=True, convert=False, extra='drop', fill='left')
 
     true4 = pd.DataFrame({
-        'col1':['1','1','1','9','1'],
-        'col2':['-a','-b','-c','-d','0']
+        'col1': ['1', '1', '1', '9', '1'],
+        'col2': ['-a', '-b', '-c', '-d', '0']
     })
     assert true4.equals(test4)
 
-    test5 = d >> separate(X.a, ['col1','col2'], sep=[1,3],
+    test5 = d >> separate(X.a, ['col1', 'col2'], sep=[1, 3],
                           remove=False, convert=False, extra='drop', fill='left')
 
     true5 = pd.DataFrame({
-        'a':['1-a-3','1-b','1-c-3-4','9-d-1','10'],
-        'col1':['1','1','1','9','1'],
-        'col2':['-a','-b','-c','-d','0']
+        'a': ['1-a-3', '1-b', '1-c-3-4', '9-d-1', '10'],
+        'col1': ['1', '1', '1', '9', '1'],
+        'col2': ['-a', '-b', '-c', '-d', '0']
     })
     assert true5.equals(test5)
 
-    test6 = d >> separate(X.a, ['col1','col2','col3'], sep=[30],
+    test6 = d >> separate(X.a, ['col1', 'col2', 'col3'], sep=[30],
                           remove=True, convert=False, extra='drop', fill='left')
 
     true6 = pd.DataFrame({
-        'col1':['1-a-3','1-b','1-c-3-4','9-d-1','10'],
-        'col2':[np.nan,np.nan,np.nan,np.nan,np.nan],
-        'col3':[np.nan,np.nan,np.nan,np.nan,np.nan]
+        'col1': ['1-a-3', '1-b', '1-c-3-4', '9-d-1', '10'],
+        'col2': [np.nan, np.nan, np.nan, np.nan, np.nan],
+        'col3': [np.nan, np.nan, np.nan, np.nan, np.nan]
     })
     assert true6.equals(test6)
 
 
 def test_unite():
     d = pd.DataFrame({
-        'a':[1,2,3],
-        'b':['a','b','c'],
-        'c':[True, False, np.nan]
+        'a': [1, 2, 3],
+        'b': ['a', 'b', 'c'],
+        'c': [True, False, np.nan]
     })
 
     test1 = d >> unite('united', X.a, 'b', 2, remove=True, na_action='maintain')
     true1 = pd.DataFrame({
-        'united':['1_a_True','2_b_False',np.nan]
+        'united': ['1_a_True', '2_b_False', np.nan]
     })
     assert true1.equals(test1)
 
-    test2 = d >> unite('united', ['a','b','c'], remove=True, na_action='ignore',
+    test2 = d >> unite('united', ['a', 'b', 'c'], remove=True, na_action='ignore',
                        sep='*')
     true2 = pd.DataFrame({
-        'united':['1*a*True','2*b*False','3*c']
+        'united': ['1*a*True', '2*b*False', '3*c']
     })
     assert test2.equals(true2)
 
     test3 = d >> unite('united', d.columns, remove=True, na_action='as_string')
     true3 = pd.DataFrame({
-        'united':['1_a_True','2_b_False','3_c_nan']
+        'united': ['1_a_True', '2_b_False', '3_c_nan']
     })
     assert true3.equals(test3)
 
     test4 = d >> unite('united', d.columns, remove=False, na_action='as_string')
     true4 = pd.DataFrame({
-        'a':[1,2,3],
-        'b':['a','b','c'],
-        'c':[True, False, np.nan],
-        'united':['1_a_True','2_b_False','3_c_nan']
+        'a': [1, 2, 3],
+        'b': ['a', 'b', 'c'],
+        'c': [True, False, np.nan],
+        'united': ['1_a_True', '2_b_False', '3_c_nan']
     })
 
     print(true4)

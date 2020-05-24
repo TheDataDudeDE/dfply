@@ -28,6 +28,15 @@ def test_mean():
     assert t.sort_index().equals(df_truth)
 
 
+def test_meandf():
+    mean_price = diamonds >> select(X.price) >> meandf()
+    mean_truth = pd.DataFrame({'price': [3932.7997219]})
+    assert isinstance(mean_price, pd.DataFrame)
+    assert mean_price.columns == mean_truth.columns
+    assert mean_price.values == pytest.approx(mean_truth.values, rel=1e-3)
+
+
+
 def test_first():
     df = diamonds >> select(X.cut, X.x) >> head(5)
     # straight summarize

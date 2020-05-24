@@ -2,6 +2,8 @@
 
 ### Version: 0.3.2
 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/TheDataDudeDE/dfply/master?urlpath=https%3A%2F%2Fgithub.com%2FTheDataDudeDE%2Fdfply%2Ftree%2Fmaster%2Fexamples)
+
 > Note: Version 0.3.0 is the first big update in awhile, and changes a lot of
 the "base" code. The `pandas-ply` package is no longer being imported. I have coded
 my own version of the "symbolic" objects that I was borrowing from `pandas-ply`. Also,

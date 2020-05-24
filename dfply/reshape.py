@@ -7,7 +7,7 @@ import re
 # ------------------------------------------------------------------------------
 
 @dfpipe
-def arrange(df, *args, **kwargs):
+def arrange(df,*args, **kwargs):
     """Calls `pandas.DataFrame.sort_values` to sort a DataFrame according to
     criteria.
 
@@ -26,6 +26,12 @@ def arrange(df, *args, **kwargs):
             `DataFrame.sort_values` function.
     """
 
+    if 'reindex' in kwargs:
+        reindex = kwargs.get('reindex')
+        kwargs.pop('reindex', None)
+    else:
+        reindex = False
+
     flat_args = [a for a in flatten(args)]
 
     series = [df[arg] if isinstance(arg, str) else
@@ -34,7 +40,13 @@ def arrange(df, *args, **kwargs):
 
     sorter = pd.concat(series, axis=1).reset_index(drop=True)
     sorter = sorter.sort_values(sorter.columns.tolist(), **kwargs)
-    return df.iloc[sorter.index, :]
+
+    if reindex:
+        sorter_index = [df.columns.get_loc(x) for x in df.columns if x in sorter.columns]
+        remainder_index = [df.columns.get_loc(x) for x in df.columns if x not in sorter.columns]
+        return df.iloc[sorter.index, sorter_index+remainder_index]
+    else:
+        return df.iloc[sorter.index, :]
 
 
 # ------------------------------------------------------------------------------

@@ -62,6 +62,11 @@ def select(df, *args):
     else:
         return df
 
+@pipe
+@group_delegation
+@symbolic_evaluation(eval_as_selector=True)
+def select_numeric_cols(df):
+    return df.select_dtypes(include=['int','float'])
 
 @pipe
 @group_delegation
@@ -166,3 +171,4 @@ def columns_to(columns, end_col, inclusive=False):
     if isinstance(end_col, str):
         end_col = columns.index(end_col)
     return columns[:end_col + int(inclusive)]
+
